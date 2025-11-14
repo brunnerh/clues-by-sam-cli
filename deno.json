@@ -1,0 +1,40 @@
+{
+	"fmt": {
+		"useTabs": true,
+		"indentWidth": 4,
+		"singleQuote": true,
+		"nextControlFlowPosition": "nextLine",
+		"singleBodyPosition": "nextLine",
+		"useBraces": "preferNone"
+	},
+	"imports": {
+		"@std/cli": "jsr:@std/cli@^1.0.23",
+		"@std/fmt": "jsr:@std/fmt@^1.0.8",
+		"puppeteer": "npm:puppeteer@^24.30.0",
+		"@x/dir": "https://deno.land/x/dir@1.5.2/mod.ts"
+	},
+	"tasks": {
+		"build": "deno compile -P --output dist/clues-by-sam-cli.exe src/main.ts",
+		"install": "npx puppeteer@^24.30.0 browsers install chrome",
+		"install-headless": "npx puppeteer@^24.30.0 browsers install chrome-headless-shell",
+		"start": "deno run -P src/main.ts"
+	},
+	"permissions": {
+		"default": {
+			"read": true,
+			"write": true,
+			"sys": true,
+			"run": true,
+			"env": true,
+			"net": true
+		}
+	},
+	"lint": {
+		"rules": {
+			"exclude": [
+				"no-explicit-any",
+				"ban-ts-comment"
+			]
+		}
+	}
+}
