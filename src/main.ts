@@ -21,14 +21,18 @@ let webSocketEndpoint: string;
 let httpServer: Deno.HttpServer;
 const encoder = new TextEncoder();
 
-const { server, port: portString } = parseArgs(Deno.args, {
-	boolean: ['server'],
-	string: ['port'],
-	alias: {
-		server: 's',
-		port: 'p',
+const { server, port: portString, board: showNewBoard, _: args } = parseArgs(
+	Deno.args,
+	{
+		boolean: ['server', 'board'],
+		string: ['port'],
+		alias: {
+			server: 's',
+			port: 'p',
+			board: 'b',
+		},
 	},
-});
+);
 
 const port = Number(portString ?? Deno.env.get('PORT') ?? '8080');
 
@@ -39,19 +43,24 @@ else
 
 async function executeCommand() {
 	const base = `http://localhost:${port}`;
-	const [command, ...args] = Deno.args.map((a) => a.toLowerCase());
+	const [command, ...commandArgs] = args.map((a) =>
+		a.toString().toLowerCase()
+	);
 
 	if (command == null) {
 		const lines = [
 			'Usage: clues-by-sam-cli <command> [args] [options]',
 			'',
 			'Commands:',
-			'  start                  Start the game server as a background process.',
-			'                         The server shuts down automatically upon game completion.',
+			'  start                  Start the game server as a background process and get the',
+			'                         initial game board state.',
+			'                         (The server shuts down automatically upon game completion.)',
 			'  stop                   Stop the game server.',
 			'  board                  Show current game board.',
 			'  innocent <coordinate>  Mark suspect at coordinate as innocent.',
 			'  criminal <coordinate>  Mark suspect at coordinate as criminal.',
+			'                         Options:',
+			'                           -b, --board  Show full game board after marking suspect.',
 			'',
 			'Options:',
 			'  -s, --server           Run in server mode',
@@ -78,6 +87,10 @@ async function executeCommand() {
 
 				p.spawn();
 
+				const response = await fetch(base + '/board');
+				const text = await response.text();
+				console.log(text);
+
 				Deno.exit(0);
 			}
 			break;
@@ -101,7 +114,7 @@ async function executeCommand() {
 		case 'innocent':
 		case 'criminal':
 			{
-				const coordinate = args[0];
+				const coordinate = commandArgs[0];
 				if (coordinate == null) {
 					console.error('Please provide a coordinate (e.g., A1).');
 					Deno.exit(1);
@@ -112,6 +125,7 @@ async function executeCommand() {
 					body: new URLSearchParams({
 						coordinate: coordinate.toLowerCase(),
 						status: command,
+						board: showNewBoard.toString(),
 					}),
 				});
 				const text = await response.text();
@@ -175,6 +189,8 @@ async function handleSetRequest(request: Request) {
 	const fromData = await request.formData();
 	const coordinate = fromData.get('coordinate') as string | null;
 	const status = fromData.get('status') as Exclude<Status, 'unknown'> | null;
+	const board = fromData.get('board') == 'true';
+
 	if (coordinate == null || status == null) {
 		return new Response('Bad Request: Missing coordinate or status', {
 			status: 400,
@@ -249,8 +265,23 @@ async function handleSetRequest(request: Request) {
 		const newState = await getState(page);
 
 		const finished = newState.every((c) => c.status !== 'unknown');
-		if (finished == false)
-			return new Response(encoder.encode(printState(newState)));
+		if (finished == false) {
+			if (board)
+				return new Response(encoder.encode(printState(newState)));
+			else {
+				const updatedCard = newState.find((c) =>
+					c.coordinate.toLowerCase() === coordinate.toLowerCase()
+				)!;
+
+				const output = [
+					`Correctly marked ${updatedCard.name} (${updatedCard.coordinate}) as ${status}.`,
+					'New clue:',
+					`${updatedCard.name}: ${updatedCard.hint}`,
+				].join('\n');
+
+				return new Response(encoder.encode(output));
+			}
+		}
 
 		await page.locator('.modal.complete').wait();
 		const results = await page.evaluate(() => {

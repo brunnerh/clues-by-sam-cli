@@ -9,15 +9,19 @@ is already available in the game. Do not guess.
 
 Do not read any files, only use `clues-by-sam-cli`.
 
+Start with `clues-by-sam-cli start`.
+
 ## Commands
 
-- `clues-by-sam-cli start` to start the game server.
-- `clues-by-sam-cli board` to get a current view of the game board.
+- `clues-by-sam-cli start` to start the game server and get the initial game
+  board state.
+- `clues-by-sam-cli board` to get a current view of the game board at any point.
 - `clues-by-sam-cli (innocent|criminal) <coordinate>` to mark a suspect in the
   game as either innocent or criminal.\
-  If the move was correct, the new board state will be shown.\
+  If the move was correct, an additional clue may be returned.\
   If there is not enough logical evidence to make that determination, this will
-  be reported as a mistake.
+  be reported as a mistake.\
+  Do **not** use the `-b` flag to minimize the output.
 
 ## Rules
 
