@@ -41,9 +41,14 @@ export async function executeClientCommand(options: ExecuteCommandOptions) {
 	switch (command) {
 		case 'start':
 			{
+				const extraArgs = Deno.build.standalone
+					? []
+					: ['run', '-P', Deno.mainModule];
+
 				console.log(`Starting server on port ${context.port}...`);
-				const p = new Deno.Command('clues-by-sam-cli', {
+				const p = new Deno.Command(Deno.execPath(), {
 					args: [
+						...extraArgs,
 						'--server',
 						'--port=' + context.port,
 						context.headless ? '' : '--no-headless',

@@ -22,8 +22,7 @@ deno task build
 ```
 
 This will compile a standalone executable and output it to the `dist/`
-directory. The executable should be available in the PATH to use the automatic
-server start function.
+directory.
 
 Running the executable without arguments will show instructions on how to use
 it.
