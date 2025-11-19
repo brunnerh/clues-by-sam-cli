@@ -36,4 +36,5 @@ clues-by-sam-cli
 The file
 [.github/instructions/clues-by-sam.instructions.md](.github/instructions/clues-by-sam.instructions.md)
 contains detailed instructions for AI agents on how to play the game using this
-CLI.
+CLI. The instructions assume that the `clues-by-sam-cli` command is available in
+the PATH.
